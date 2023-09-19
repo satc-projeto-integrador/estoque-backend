@@ -1,26 +1,38 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { findPaginated } from 'src/common/utils';
+import { Page } from 'src/types/interfaces';
+import { FindManyOptions, Repository, UpdateResult } from 'typeorm';
 import { CreateUsuarioDto } from '../dto/create-usuario.dto';
 import { UpdateUsuarioDto } from '../dto/update-usuario.dto';
+import { Usuario } from '../entities/usuario.entity';
 
 @Injectable()
 export class UsuarioService {
-  create(createUsuarioDto: CreateUsuarioDto) {
-    return 'This action adds a new usuario';
+
+  constructor(
+    @InjectRepository(Usuario)
+    private repository: Repository<Usuario>,
+  ) {
+
+  }
+  async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
+    return this.repository.save(createUsuarioDto);
   }
 
-  findAll() {
-    return `This action returns all usuario`;
+  async findAll(page: number = 1, rpp: number = 10, options?: FindManyOptions<Usuario>): Promise<Page<Usuario>> {
+    return findPaginated(this.repository, page, rpp, options);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} usuario`;
+  async findOne(id: number): Promise<Usuario> {
+    return this.repository.findOneBy({ id });
   }
 
-  update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
-    return `This action updates a #${id} usuario`;
+  async update(id: number, updateUsuarioDto: UpdateUsuarioDto): Promise<UpdateResult> {
+    return this.repository.update({ id }, updateUsuarioDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} usuario`;
+  async remove(id: number): Promise<UpdateResult> {
+    return this.repository.softDelete({ id });
   }
 }

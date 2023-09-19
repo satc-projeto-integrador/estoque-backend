@@ -2,8 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { UsuarioService } from '../services/usuario.service';
 import { CreateUsuarioDto } from '../dto/create-usuario.dto';
 import { UpdateUsuarioDto } from '../dto/update-usuario.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('usuario')
+@ApiTags('Usuarios')
+@Controller({ path: 'usuarios', version: '1' })
 export class UsuarioController {
   constructor(private readonly usuarioService: UsuarioService) { }
 
