@@ -1,8 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-export class CreateUsuarioDto {
+export class cadastroProdutos {
     @ApiProperty({ maxLength: 10 })
-    desscricao: string;
+    descricao: string;
     
     @ApiProperty()
     valor: string;
