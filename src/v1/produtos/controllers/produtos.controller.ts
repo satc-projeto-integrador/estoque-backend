@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { produtosService } from '../services/produtos.service';
+import { produtosService } from '../services/produtos.module';
 import { CadastroprodutosDto } from '../dto/cadastro-produto.dto';
 import { UpdateprodutosDto } from '../dto/cadastro-produto.dto';
 import { ApiTags } from '@nestjs/swagger';
