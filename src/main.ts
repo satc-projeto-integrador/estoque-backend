@@ -5,15 +5,14 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api')
-    .enableVersioning({ type: VersioningType.URI });
+  app.setGlobalPrefix('api').enableVersioning({ type: VersioningType.URI });
   setupSwagger(app);
   await app.listen(3000);
 }
 
 function setupSwagger(app: INestApplication) {
   const options = new DocumentBuilder()
-    .setTitle('API Alimentação')
+    .setTitle('API Estoque')
     .setDescription('API')
     .setVersion('1.0')
     .addBearerAuth()
