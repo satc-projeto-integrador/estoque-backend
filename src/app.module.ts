@@ -7,12 +7,15 @@ import { UsuarioModule } from './v1/usuario/usuario.module';
 import { ExemploModule } from './v1/exemplo/exemplo.module';
 import { Exemplo } from './v1/exemplo/entities/exemplo.entity';
 import { AuthModule } from './v1/auth/auth.module';
+import { produtosModule } from './v1/produtos/produtos.module';
+import { Produto } from './v1/produtos/entities/produto.entity';
 
 @Module({
   imports: [
     AuthModule,
-    UsuarioModule,
     ExemploModule,
+    UsuarioModule,
+    produtosModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -23,7 +26,7 @@ import { AuthModule } from './v1/auth/auth.module';
           username: configService.get('DATABASE_USER'),
           password: configService.get('DATABASE_PASSWORD'),
           database: configService.get('DATABASE_NAME'),
-          entities: [Usuario, Exemplo],
+          entities: [Usuario, Produto, Exemplo],
           synchronize: true,
         };
       },
