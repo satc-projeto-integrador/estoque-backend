@@ -1,10 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { ExemploService } from '../services/exemplo.service';
 import { CreateExemploDto } from '../dto/create-exemplo.dto';
 import { UpdateExemploDto } from '../dto/update-exemplo.dto';
 import { ApiTags } from '@nestjs/swagger';
 
-@Controller({ path: 'exemplos', version: '1'})
+@Controller({ path: 'exemplos', version: '1' })
 @ApiTags('Exemplos')
 export class ExemploController {
   constructor(private readonly exemploService: ExemploService) {}
@@ -15,8 +24,8 @@ export class ExemploController {
   }
 
   @Get()
-  findAll() {
-    return this.exemploService.findAll();
+  findAll(@Query('page') page: number, @Query('rpp') rpp: number) {
+    return this.exemploService.findAll(page, rpp);
   }
 
   @Get(':id')

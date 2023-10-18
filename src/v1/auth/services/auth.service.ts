@@ -28,7 +28,7 @@ export class AuthService {
 
     const token = await this.generateToken({ usuarioId: usuario.id });
 
-    return { accessToken: token };
+    return { accessToken: token, usuario };
   }
 
   credenciaisIncorretasErro() {

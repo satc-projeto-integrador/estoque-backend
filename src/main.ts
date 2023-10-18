@@ -5,7 +5,10 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api').enableVersioning({ type: VersioningType.URI });
+  app
+    .setGlobalPrefix('api')
+    .enableVersioning({ type: VersioningType.URI })
+    .enableCors();
   setupSwagger(app);
   await app.listen(3000);
 }

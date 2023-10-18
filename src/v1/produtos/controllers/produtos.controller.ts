@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ProdutoService } from '../services/produto.service';
@@ -24,8 +25,8 @@ export class produtosController {
   }
 
   @Get()
-  findAll() {
-    return this.produtoService.findAll();
+  findAll(@Query('page') page: number, @Query('rpp') rpp: number) {
+    return this.produtoService.findAll(page, rpp);
   }
 
   @Get(':id')

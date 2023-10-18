@@ -10,4 +10,4 @@ import { Produto } from './entities/produto.entity';
   providers: [ProdutoService],
   exports: [TypeOrmModule],
 })
-export class produtosModule {}
+export class ProdutoModule {}

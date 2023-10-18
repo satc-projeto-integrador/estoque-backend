@@ -7,15 +7,17 @@ import { UsuarioModule } from './v1/usuario/usuario.module';
 import { ExemploModule } from './v1/exemplo/exemplo.module';
 import { Exemplo } from './v1/exemplo/entities/exemplo.entity';
 import { AuthModule } from './v1/auth/auth.module';
-import { produtosModule } from './v1/produtos/produtos.module';
 import { Produto } from './v1/produtos/entities/produto.entity';
+import { ProdutoModule } from './v1/produtos/produtos.module';
+import { MovimentacaoModule } from './v1/movimentacao/movimentacao.module';
 
 @Module({
   imports: [
     AuthModule,
     ExemploModule,
     UsuarioModule,
-    produtosModule,
+    ProdutoModule,
+    MovimentacaoModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -33,7 +35,6 @@ import { Produto } from './v1/produtos/entities/produto.entity';
       inject: [ConfigService],
     }),
     ConfigModule.forRoot(),
-    ExemploModule,
   ],
   controllers: [],
   providers: [],
