@@ -12,6 +12,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ProdutoService } from '../services/produto.service';
 import { UpdateProdutoDto } from '../dto/update-produto.dto';
 import { CreateProdutoDto } from '../dto/create-produto.dto';
+import { ILike } from 'typeorm';
 
 @ApiTags('Produtos')
 @Controller({ path: 'produtos', version: '1' })
@@ -25,8 +26,21 @@ export class produtosController {
   }
 
   @Get()
-  findAll(@Query('page') page: number, @Query('rpp') rpp: number) {
-    return this.produtoService.findAll(page, rpp);
+  findAll(
+    @Query('page') page: number,
+    @Query('rpp') rpp: number,
+    @Query('q') q: string,
+  ) {
+    let where;
+    if (q) {
+      where = {
+        descricao: ILike(`%${q}%`),
+      };
+    }
+    return this.produtoService.findAll(page, rpp, {
+      where,
+      order: { id: 'desc' },
+    });
   }
 
   @Get(':id')

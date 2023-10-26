@@ -19,7 +19,7 @@ export class AuthService {
 
     if (!usuario) this.credenciaisIncorretasErro();
 
-    const senhaCorreta = this.encryptionService.comparePassword(
+    const senhaCorreta = await this.encryptionService.comparePassword(
       singInDto.senha,
       usuario.senha,
     );
