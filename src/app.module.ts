@@ -10,6 +10,8 @@ import { ProdutoModule } from './v1/produtos/produtos.module';
 import { MovimentacaoModule } from './v1/movimentacao/movimentacao.module';
 import { TipoProdutoModule } from './v1/tipo-produto/tipo-produto.module';
 import { TipoProduto } from './v1/tipo-produto/entities/tipo-produto.entity';
+import { TipoMovimentacaoModule } from './v1/tipo-movimentacao/tipo-movimentacao.module';
+import { TipoMovimentacao } from './v1/tipo-movimentacao/entities/tipo-movimentacao.entity';
 
 @Module({
   imports: [
@@ -23,7 +25,7 @@ import { TipoProduto } from './v1/tipo-produto/entities/tipo-produto.entity';
           username: configService.get('DATABASE_USER'),
           password: configService.get('DATABASE_PASSWORD'),
           database: configService.get('DATABASE_NAME'),
-          entities: [Usuario, Produto, TipoProduto],
+          entities: [Usuario, Produto, TipoProduto, TipoMovimentacao],
           synchronize: true,
         };
       },
@@ -35,6 +37,7 @@ import { TipoProduto } from './v1/tipo-produto/entities/tipo-produto.entity';
     ProdutoModule,
     MovimentacaoModule,
     TipoProdutoModule,
+    TipoMovimentacaoModule,
   ],
   controllers: [],
   providers: [],
