@@ -1,13 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { MovimentacaoService } from '../services/movimentacao.service';
 import { CreateMovimentacaoDto } from '../dto/create-movimentacao.dto';
 import { UpdateMovimentacaoDto } from '../dto/update-movimentacao.dto';
 import { ApiTags } from '@nestjs/swagger';
 
-@Controller({ path: 'movimentacao', version: '1'})
+@Controller({ path: 'movimentacoes', version: '1' })
 @ApiTags('Movimentacoes')
 export class MovimentacaoController {
-  constructor(private readonly movimentacaoService: MovimentacaoService) {}
+  constructor(private readonly movimentacaoService: MovimentacaoService) { }
 
   @Post()
   create(@Body() createMovimentacaoDto: CreateMovimentacaoDto) {
@@ -15,8 +15,14 @@ export class MovimentacaoController {
   }
 
   @Get()
-  findAll() {
-    return this.movimentacaoService.findAll();
+  findAll(
+    @Query('page') page: number,
+    @Query('rpp') rpp: number,
+  ) {
+    return this.movimentacaoService.findAll(page, rpp, {
+      order: { id: 'desc' },
+      relations: ['tipoMovimentacao']
+    });
   }
 
   @Get(':id')
