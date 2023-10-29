@@ -15,6 +15,8 @@ import { TipoMovimentacao } from './v1/tipo-movimentacao/entities/tipo-movimenta
 import { Movimentacao } from './v1/movimentacao/entities/movimentacao.entity';
 import { MovimentacaoProduto } from './v1/movimentacao/entities/movimentacao-produto.entity';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { SaldoProdutoModule } from './v1/saldo-produto/saldo-produto.module';
+import { SaldoProduto } from './v1/saldo-produto/entities/saldo-produto.entity';
 
 @Module({
   imports: [
@@ -28,7 +30,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
           username: configService.get('DATABASE_USER'),
           password: configService.get('DATABASE_PASSWORD'),
           database: configService.get('DATABASE_NAME'),
-          entities: [Usuario, Produto, TipoProduto, TipoMovimentacao, Movimentacao, MovimentacaoProduto],
+          entities: [Usuario, Produto, TipoProduto, TipoMovimentacao, Movimentacao, MovimentacaoProduto, SaldoProduto],
           synchronize: true,
           namingStrategy: new SnakeNamingStrategy()
         };
@@ -42,6 +44,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
     MovimentacaoModule,
     TipoProdutoModule,
     TipoMovimentacaoModule,
+    SaldoProdutoModule,
   ],
   controllers: [],
   providers: [],

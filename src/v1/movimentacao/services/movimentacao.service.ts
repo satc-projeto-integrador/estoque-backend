@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { findPaginated } from 'src/common/utils';
 import { Page } from 'src/types/interfaces';
@@ -6,6 +6,9 @@ import { CreateMovimentacaoDto } from 'src/v1/movimentacao/dto/create-movimentac
 import { UpdateMovimentacaoDto } from 'src/v1/movimentacao/dto/update-movimentacao.dto';
 import { FindManyOptions, Repository, UpdateResult } from 'typeorm';
 import { Movimentacao } from '../entities/movimentacao.entity';
+import { SaldoProdutoService } from 'src/v1/saldo-produto/services/saldo-produto.service';
+import { TipoMovimentacao } from 'src/v1/tipo-movimentacao/entities/tipo-movimentacao.entity';
+import { TipoMovimentacaoEnum } from 'src/types/enums';
 
 @Injectable()
 export class MovimentacaoService {
@@ -13,11 +16,35 @@ export class MovimentacaoService {
   constructor(
     @InjectRepository(Movimentacao)
     private repository: Repository<Movimentacao>,
+    private readonly saldoService: SaldoProdutoService,
   ) {
 
   }
+
+  // todo colocar em uma unica transacao
   async create(createDto: CreateMovimentacaoDto): Promise<Movimentacao> {
-    return this.repository.save(createDto);
+    const { id } = await this.repository.save(createDto);
+    const movimentacao = await this.repository.findOne({
+      where: { id },
+      relations: ["tipoMovimentacao", "movimentacaoProdutos", "movimentacaoProdutos.produto"]
+    })
+
+    for (const { produto, quantidade } of movimentacao.movimentacaoProdutos) {
+      switch (movimentacao.tipoMovimentacao.tipo) {
+        case TipoMovimentacaoEnum.ENTRADA: {
+          await this.saldoService.entrada(produto, quantidade);
+          break;
+        }
+        case TipoMovimentacaoEnum.SAIDA: {
+          await this.saldoService.saida(produto, quantidade);
+          break;
+        }
+        default: {
+          throw new HttpException({ message: "Erro ao definir tipo de movimentacao" }, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+      }
+    }
+    return movimentacao;
   }
 
   async findAll(page: number = 1, rpp: number = 10, options?: FindManyOptions<Movimentacao>): Promise<Page<Movimentacao>> {
