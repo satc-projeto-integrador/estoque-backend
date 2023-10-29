@@ -4,8 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Usuario } from './v1/usuario/entities/usuario.entity';
 
 import { UsuarioModule } from './v1/usuario/usuario.module';
-import { ExemploModule } from './v1/exemplo/exemplo.module';
-import { Exemplo } from './v1/exemplo/entities/exemplo.entity';
 import { AuthModule } from './v1/auth/auth.module';
 import { Produto } from './v1/produtos/entities/produto.entity';
 import { ProdutoModule } from './v1/produtos/produtos.module';
@@ -25,7 +23,7 @@ import { TipoProduto } from './v1/tipo-produto/entities/tipo-produto.entity';
           username: configService.get('DATABASE_USER'),
           password: configService.get('DATABASE_PASSWORD'),
           database: configService.get('DATABASE_NAME'),
-          entities: [Usuario, Produto, TipoProduto, Exemplo],
+          entities: [Usuario, Produto, TipoProduto],
           synchronize: true,
         };
       },
@@ -33,7 +31,6 @@ import { TipoProduto } from './v1/tipo-produto/entities/tipo-produto.entity';
     }),
     ConfigModule.forRoot(),
     AuthModule,
-    ExemploModule,
     UsuarioModule,
     ProdutoModule,
     MovimentacaoModule,
@@ -42,4 +39,4 @@ import { TipoProduto } from './v1/tipo-produto/entities/tipo-produto.entity';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }
