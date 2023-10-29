@@ -26,7 +26,10 @@ export class ProdutoService {
   }
 
   async findOne(id: number): Promise<Produto> {
-    return this.repository.findOneBy({ id });
+    return this.repository.findOne({
+      where: { id },
+      relations: ['tipoProduto'],
+    });
   }
 
   async update(id: number, updateDto: UpdateProdutoDto): Promise<UpdateResult> {

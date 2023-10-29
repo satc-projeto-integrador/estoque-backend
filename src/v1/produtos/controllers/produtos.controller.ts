@@ -40,6 +40,7 @@ export class produtosController {
     return this.produtoService.findAll(page, rpp, {
       where,
       order: { id: 'desc' },
+      relations: ['tipoProduto'],
     });
   }
 

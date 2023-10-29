@@ -10,14 +10,11 @@ import { AuthModule } from './v1/auth/auth.module';
 import { Produto } from './v1/produtos/entities/produto.entity';
 import { ProdutoModule } from './v1/produtos/produtos.module';
 import { MovimentacaoModule } from './v1/movimentacao/movimentacao.module';
+import { TipoProdutoModule } from './v1/tipo-produto/tipo-produto.module';
+import { TipoProduto } from './v1/tipo-produto/entities/tipo-produto.entity';
 
 @Module({
   imports: [
-    AuthModule,
-    ExemploModule,
-    UsuarioModule,
-    ProdutoModule,
-    MovimentacaoModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -28,13 +25,19 @@ import { MovimentacaoModule } from './v1/movimentacao/movimentacao.module';
           username: configService.get('DATABASE_USER'),
           password: configService.get('DATABASE_PASSWORD'),
           database: configService.get('DATABASE_NAME'),
-          entities: [Usuario, Produto, Exemplo],
+          entities: [Usuario, Produto, TipoProduto, Exemplo],
           synchronize: true,
         };
       },
       inject: [ConfigService],
     }),
     ConfigModule.forRoot(),
+    AuthModule,
+    ExemploModule,
+    UsuarioModule,
+    ProdutoModule,
+    MovimentacaoModule,
+    TipoProdutoModule,
   ],
   controllers: [],
   providers: [],
