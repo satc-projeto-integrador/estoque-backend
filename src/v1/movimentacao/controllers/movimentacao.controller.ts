@@ -8,12 +8,17 @@ import { ApiTags } from '@nestjs/swagger';
 @ApiTags('Movimentacoes')
 export class MovimentacaoController {
   constructor(private readonly movimentacaoService: MovimentacaoService) { }
-
+  
+  @Get('rel-movimentacao')
+  relatorioMovimentacao() {
+    return this.movimentacaoService.relMovimentacoes();
+  }
+  
   @Post()
   create(@Body() createMovimentacaoDto: CreateMovimentacaoDto) {
     return this.movimentacaoService.create(createMovimentacaoDto);
   }
-
+  
   @Get()
   findAll(
     @Query('page') page: number,
@@ -24,7 +29,7 @@ export class MovimentacaoController {
       relations: ['tipoMovimentacao']
     });
   }
-
+  
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.movimentacaoService.findOne(+id);
@@ -39,4 +44,5 @@ export class MovimentacaoController {
   remove(@Param('id') id: string) {
     return this.movimentacaoService.remove(+id);
   }
+
 }

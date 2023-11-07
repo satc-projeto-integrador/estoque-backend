@@ -9,6 +9,8 @@ import { Movimentacao } from '../entities/movimentacao.entity';
 import { SaldoProdutoService } from 'src/v1/saldo-produto/services/saldo-produto.service';
 import { TipoMovimentacao } from 'src/v1/tipo-movimentacao/entities/tipo-movimentacao.entity';
 import { TipoMovimentacaoEnum } from 'src/types/enums';
+import { MovimentacaoProduto } from '../entities/movimentacao-produto.entity';
+import { groupBy } from 'rxjs';
 
 @Injectable()
 export class MovimentacaoService {
@@ -16,6 +18,8 @@ export class MovimentacaoService {
   constructor(
     @InjectRepository(Movimentacao)
     private repository: Repository<Movimentacao>,
+    @InjectRepository(MovimentacaoProduto)
+    private movimentacaoProdutoRepository: Repository<MovimentacaoProduto>,
     private readonly saldoService: SaldoProdutoService,
   ) {
 
@@ -61,5 +65,28 @@ export class MovimentacaoService {
 
   async remove(id: number): Promise<UpdateResult> {
     return this.repository.softDelete({ id });
+  }
+
+  async relMovimentacoes() {
+    const query = this.movimentacaoProdutoRepository.createQueryBuilder("movimentacaoProduto")
+      .select([
+        "produto.id",
+        "produto.descricao",
+        "tipoMovimentacao.id",
+        "tipoMovimentacao.descricao",
+        "tipoMovimentacao.tipo",
+        "sum(movimentacaoProduto.valor) as valor",
+        "sum(movimentacaoProduto.quantidade) as quantidade",
+      ])
+      .leftJoin("movimentacaoProduto.movimentacao", "movimentacao")
+      .leftJoin("movimentacaoProduto.produto", "produto")
+      .leftJoin("movimentacao.tipoMovimentacao", "tipoMovimentacao")
+      .groupBy("produto.id")
+      .addGroupBy("produto.descricao")
+      .addGroupBy("tipoMovimentacao.id")
+      .addGroupBy("tipoMovimentacao.descricao")
+      .addGroupBy("tipoMovimentacao.tipo")
+    console.log(await query.getSql())
+    return query.getRawMany()
   }
 }
