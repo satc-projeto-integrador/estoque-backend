@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { MovimentacaoService } from '../services/movimentacao.service';
 import { CreateMovimentacaoDto } from '../dto/create-movimentacao.dto';
 import { UpdateMovimentacaoDto } from '../dto/update-movimentacao.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @Controller({ path: 'movimentacoes', version: '1' })
 @ApiTags('Movimentacoes')
@@ -10,8 +10,20 @@ export class MovimentacaoController {
   constructor(private readonly movimentacaoService: MovimentacaoService) { }
   
   @Get('rel-movimentacao')
-  relatorioMovimentacao() {
-    return this.movimentacaoService.relMovimentacoes();
+
+  @ApiQuery({
+    name: 'idProduto',
+    required: false,
+    description: 'Termo de busca opcional',
+    type: Number, // Tipo do parâmetro (opcional)
+  })
+
+  relatorioMovimentacao(
+    @Query('page') page: number,
+    @Query('rpp') rpp: number,
+    @Query('idProduto') idProduto?: number
+  ) {
+    return this.movimentacaoService.relMovimentacoes({ page, rpp, idProduto })
   }
   
   @Post()

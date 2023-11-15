@@ -11,6 +11,7 @@ import { TipoMovimentacao } from 'src/v1/tipo-movimentacao/entities/tipo-movimen
 import { TipoMovimentacaoEnum } from 'src/types/enums';
 import { MovimentacaoProduto } from '../entities/movimentacao-produto.entity';
 import { groupBy } from 'rxjs';
+import { RelatorioMovimentacaoDto } from '../dto/relatorio-movimentacao.dto';
 
 @Injectable()
 export class MovimentacaoService {
@@ -67,8 +68,8 @@ export class MovimentacaoService {
     return this.repository.softDelete({ id });
   }
 
-  async relMovimentacoes() {
-    const query = this.movimentacaoProdutoRepository.createQueryBuilder("movimentacaoProduto")
+  async relMovimentacoes({ page, rpp, idProduto }: { page: number, rpp: number, idProduto?: number }): Promise<Page<RelatorioMovimentacaoDto>> {
+    let queryBuilder = this.movimentacaoProdutoRepository.createQueryBuilder("movimentacaoProduto")
       .select([
         "produto.id",
         "produto.descricao",
@@ -78,15 +79,31 @@ export class MovimentacaoService {
         "sum(movimentacaoProduto.valor) as valor",
         "sum(movimentacaoProduto.quantidade) as quantidade",
       ])
-      .leftJoin("movimentacaoProduto.movimentacao", "movimentacao")
-      .leftJoin("movimentacaoProduto.produto", "produto")
-      .leftJoin("movimentacao.tipoMovimentacao", "tipoMovimentacao")
+      .innerJoin("movimentacaoProduto.movimentacao", "movimentacao")
+      .innerJoin("movimentacaoProduto.produto", "produto")
+      .innerJoin("movimentacao.tipoMovimentacao", "tipoMovimentacao")
       .groupBy("produto.id")
       .addGroupBy("produto.descricao")
       .addGroupBy("tipoMovimentacao.id")
       .addGroupBy("tipoMovimentacao.descricao")
       .addGroupBy("tipoMovimentacao.tipo")
-    console.log(await query.getSql())
-    return query.getRawMany()
+      .take(rpp)
+      .skip((page - 1) * rpp);
+  
+    // Adiciona a cláusula WHERE condicional se idProd estiver definido
+    if (idProduto !== undefined) {
+      queryBuilder = queryBuilder.where("movimentacaoProduto.produto_id = :produtoId", { produtoId: idProduto });
+    }
+  
+    const result = await queryBuilder.getRawMany();
+  
+    const resultPage: Page<RelatorioMovimentacaoDto> = {
+      page,
+      rpp,
+      list: result,
+      totalCount: 1
+    };
+    console.log(await queryBuilder.getSql())
+    return resultPage;
   }
 }
