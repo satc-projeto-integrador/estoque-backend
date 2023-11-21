@@ -7,11 +7,12 @@ import { UpdateMovimentacaoDto } from 'src/v1/movimentacao/dto/update-movimentac
 import { FindManyOptions, Repository, UpdateResult } from 'typeorm';
 import { Movimentacao } from '../entities/movimentacao.entity';
 import { SaldoProdutoService } from 'src/v1/saldo-produto/services/saldo-produto.service';
-import { TipoMovimentacao } from 'src/v1/tipo-movimentacao/entities/tipo-movimentacao.entity';
 import { TipoMovimentacaoEnum } from 'src/types/enums';
 import { MovimentacaoProduto } from '../entities/movimentacao-produto.entity';
-import { plainToClass } from 'class-transformer';
+import { RelatorioMovimentacaoDto } from '../dto/relatorio-movimentacao.dto';
+import { query } from 'express';
 
+type RelatorioFilterOptions = { produtoIds?: number[], tipoProdutoIds?: number[], dataInicio?: Date, dataFim?: Date }
 @Injectable()
 export class MovimentacaoService {
 
@@ -97,5 +98,71 @@ export class MovimentacaoService {
     }
 
     return this.repository.softDelete({ id });
+  }
+
+  async relMovimentacoes(
+    page: number,
+    rpp: number,
+    {
+      produtoIds,
+      tipoProdutoIds,
+      dataInicio,
+      dataFim
+    }: RelatorioFilterOptions
+  ): Promise<Page<RelatorioMovimentacaoDto>> {
+    const queryBuilder = this.movimentacaoProdutoRepository.createQueryBuilder("movimentacaoProduto")
+      .select([
+        "produto.id",
+        "produto.descricao",
+        "tipoProduto.id",
+        "tipoProduto.descricao",
+        "tipoMovimentacao.id",
+        "tipoMovimentacao.descricao",
+        "tipoMovimentacao.tipo",
+        "sum(movimentacaoProduto.valor) as valor",
+        "sum(movimentacaoProduto.quantidade) as quantidade",
+        "count(*) as count"
+      ])
+      .innerJoin("movimentacaoProduto.movimentacao", "movimentacao")
+      .innerJoin("movimentacaoProduto.produto", "produto")
+      .innerJoin("movimentacao.tipoMovimentacao", "tipoMovimentacao")
+      .innerJoin("produto.tipoProduto", "tipoProduto")
+      .groupBy("produto.id")
+      .addGroupBy("produto.descricao")
+      .addGroupBy("tipoProduto.id")
+      .addGroupBy("tipoProduto.descricao")
+      .addGroupBy("tipoMovimentacao.id")
+      .addGroupBy("tipoMovimentacao.descricao")
+      .addGroupBy("tipoMovimentacao.tipo")
+      .where("1=1")
+      .take(rpp)
+      .skip((page - 1) * rpp);
+
+    // Adiciona a cláusula WHERE condicional
+    if (produtoIds?.length) {
+      queryBuilder.andWhere("movimentacaoProduto.produto_id IN (:...produtoIds)", { produtoIds });
+    }
+
+    if (tipoProdutoIds?.length) {
+      queryBuilder.andWhere("tipoProduto.id IN (:...tipoProdutoIds)", { tipoProdutoIds });
+    }
+    
+    if (dataInicio) {
+      queryBuilder.andWhere("movimentacao.data_movimentacao >= :dataInicio", { dataInicio });
+    }
+
+    if (dataFim) {
+      queryBuilder.andWhere("movimentacao.data_movimentacao <= :dataFim", { dataFim: dataFim });
+    }
+    
+    const result = await queryBuilder.getRawMany();
+
+    const resultPage: Page<RelatorioMovimentacaoDto> = {
+      page,
+      rpp,
+      list: result,
+      totalCount: await queryBuilder.getCount()
+    };
+    return resultPage;
   }
 }
