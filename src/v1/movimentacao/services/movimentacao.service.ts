@@ -9,6 +9,8 @@ import { Movimentacao } from '../entities/movimentacao.entity';
 import { SaldoProdutoService } from 'src/v1/saldo-produto/services/saldo-produto.service';
 import { TipoMovimentacao } from 'src/v1/tipo-movimentacao/entities/tipo-movimentacao.entity';
 import { TipoMovimentacaoEnum } from 'src/types/enums';
+import { MovimentacaoProduto } from '../entities/movimentacao-produto.entity';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class MovimentacaoService {
@@ -16,6 +18,8 @@ export class MovimentacaoService {
   constructor(
     @InjectRepository(Movimentacao)
     private repository: Repository<Movimentacao>,
+    @InjectRepository(MovimentacaoProduto)
+    private movimentacaoProdutoRepository: Repository<MovimentacaoProduto>,
     private readonly saldoService: SaldoProdutoService,
   ) {
 
