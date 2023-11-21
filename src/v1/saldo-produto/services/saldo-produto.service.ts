@@ -8,7 +8,7 @@ import { Produto } from 'src/v1/produtos/entities/produto.entity';
 import { Movimentacao } from 'src/v1/movimentacao/entities/movimentacao.entity';
 import { MovimentacaoProduto } from 'src/v1/movimentacao/entities/movimentacao-produto.entity';
 
-type RelatorioFilterOptions = { produtoIds?: number[], tipoProdutoIds?: number[], dataLimite?: Date }
+type RelatorioFilterOptions = { produtoIds?: number[], dataFinal?: Date }
 
 @Injectable()
 export class SaldoProdutoService {
@@ -80,8 +80,7 @@ export class SaldoProdutoService {
 		rpp: number,
 		{
 		  produtoIds,
-		  tipoProdutoIds,
-		  dataLimite,
+		  dataFinal,
 		}: RelatorioFilterOptions
 	): Promise<Page<any>> {
 		const queryBuilder = this.repositoryMovimentacao.createQueryBuilder("movimentacaoProduto")
@@ -98,23 +97,13 @@ export class SaldoProdutoService {
 		  .take(rpp)
 		  .skip((page - 1) * rpp);
 	
-		
-		// precisa adicionar os filtros aqui
-		// if (produtoIds?.length) {
-		//   queryBuilder.andWhere("movimentacaoProduto.produto_id IN (:...produtoIds)", { produtoIds });
-		// }
-	
-		// if (tipoProdutoIds?.length) {
-		//   queryBuilder.andWhere("tipoProduto.id IN (:...tipoProdutoIds)", { tipoProdutoIds });
-		// }
-		
-		// if (dataInicio) {
-		//   queryBuilder.andWhere("movimentacao.data_movimentacao >= :dataInicio", { dataInicio });
-		// }
-	
-		// if (dataFim) {
-		//   queryBuilder.andWhere("movimentacao.data_movimentacao <= :dataFim", { dataFim: dataFim });
-		// }
+		if (produtoIds?.length) {
+		  queryBuilder.andWhere("movimentacaoProduto.produto_id IN (:...produtoIds)", { produtoIds });
+		}
+
+		if (dataFinal) {
+		  queryBuilder.andWhere("movimentacao.data_movimentacao <= :dataFinal", { dataFinal });
+		}
 		
 		const result = await queryBuilder.getRawMany();
 	
