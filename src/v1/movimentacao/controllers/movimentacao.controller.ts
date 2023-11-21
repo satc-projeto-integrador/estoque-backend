@@ -8,29 +8,53 @@ import { ApiQuery, ApiTags } from '@nestjs/swagger';
 @ApiTags('Movimentacoes')
 export class MovimentacaoController {
   constructor(private readonly movimentacaoService: MovimentacaoService) { }
-  
+
   @Get('rel-movimentacao')
 
   @ApiQuery({
     name: 'idProduto',
     required: false,
-    description: 'Termo de busca opcional',
+    description: 'Id do produto',
     type: Number, // Tipo do parâmetro (opcional)
+  })
+
+  @ApiQuery({
+    name: 'idTipoProduto',
+    required: false,
+    description: 'Id do tipo do produto',
+    type: Number, // Tipo do parâmetro (opcional)
+  })
+
+  @ApiQuery({
+    name: 'dataMovInicio',
+    required: false,
+    description: 'Data inicio busca da movimentação',
+    type: String, // Tipo do parâmetro (opcional)
+  })
+
+  @ApiQuery({
+    name: 'dataMovFim',
+    required: false,
+    description: 'Data fim busca da movimentação',
+    type: String, // Tipo do parâmetro (opcional)
   })
 
   relatorioMovimentacao(
     @Query('page') page: number,
     @Query('rpp') rpp: number,
-    @Query('idProduto') idProduto?: number
+    @Query('idProduto') idProduto?: number,
+    @Query('idTipoProduto') idTipoProduto?: number,
+    @Query('dataMovInicio') dataMovInicio?: string,
+    @Query('dataMovFim') dataMovFim?: string
   ) {
-    return this.movimentacaoService.relMovimentacoes({ page, rpp, idProduto })
+    return this.movimentacaoService.relMovimentacoes({ page, rpp, idProduto, idTipoProduto, dataMovInicio, dataMovFim })
   }
-  
+
   @Post()
   create(@Body() createMovimentacaoDto: CreateMovimentacaoDto) {
     return this.movimentacaoService.create(createMovimentacaoDto);
   }
-  
+
   @Get()
   findAll(
     @Query('page') page: number,
@@ -41,7 +65,7 @@ export class MovimentacaoController {
       relations: ['tipoMovimentacao']
     });
   }
-  
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.movimentacaoService.findOne(+id);

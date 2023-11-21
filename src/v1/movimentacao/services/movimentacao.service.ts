@@ -68,11 +68,20 @@ export class MovimentacaoService {
     return this.repository.softDelete({ id });
   }
 
-  async relMovimentacoes({ page, rpp, idProduto }: { page: number, rpp: number, idProduto?: number }): Promise<Page<RelatorioMovimentacaoDto>> {
+  async relMovimentacoes({ 
+    page,
+    rpp,
+    idProduto,
+    idTipoProduto,
+    dataMovInicio,
+    dataMovFim
+  }: {page: number, rpp: number, idProduto?: number, idTipoProduto?: number, dataMovInicio?: string, dataMovFim?: string}): Promise<Page<RelatorioMovimentacaoDto>> {
     let queryBuilder = this.movimentacaoProdutoRepository.createQueryBuilder("movimentacaoProduto")
       .select([
         "produto.id",
         "produto.descricao",
+        "tipoProduto.id",
+        "tipoProduto.descricao",
         "tipoMovimentacao.id",
         "tipoMovimentacao.descricao",
         "tipoMovimentacao.tipo",
@@ -82,21 +91,37 @@ export class MovimentacaoService {
       .innerJoin("movimentacaoProduto.movimentacao", "movimentacao")
       .innerJoin("movimentacaoProduto.produto", "produto")
       .innerJoin("movimentacao.tipoMovimentacao", "tipoMovimentacao")
+      .innerJoin("produto.tipoProduto", "tipoProduto")
       .groupBy("produto.id")
       .addGroupBy("produto.descricao")
+      .addGroupBy("tipoProduto.id")
+      .addGroupBy("tipoProduto.descricao")
       .addGroupBy("tipoMovimentacao.id")
       .addGroupBy("tipoMovimentacao.descricao")
       .addGroupBy("tipoMovimentacao.tipo")
+      .where("1=1")
       .take(rpp)
       .skip((page - 1) * rpp);
-  
-    // Adiciona a cláusula WHERE condicional se idProd estiver definido
+
+    // Adiciona a cláusula WHERE condicional
     if (idProduto !== undefined) {
-      queryBuilder = queryBuilder.where("movimentacaoProduto.produto_id = :produtoId", { produtoId: idProduto });
+      queryBuilder = queryBuilder.andWhere("movimentacaoProduto.produto_id = :produtoId", { produtoId: idProduto });
     }
-  
+
+    if (idTipoProduto !== undefined) {
+      queryBuilder = queryBuilder.andWhere("tipoProduto.id = :tipoProdutoId", { tipoProdutoId: idTipoProduto });
+    }
+    
+    if (dataMovInicio !== undefined) {
+      queryBuilder = queryBuilder.andWhere("movimentacao.data_movimentacao >= :dataInicio", { dataInicio: dataMovInicio });
+    }
+
+    if (dataMovFim !== undefined) {
+      queryBuilder = queryBuilder.andWhere("movimentacao.data_movimentacao <= :dataFim", { dataFim: dataMovFim });
+    }
+    
     const result = await queryBuilder.getRawMany();
-  
+
     const resultPage: Page<RelatorioMovimentacaoDto> = {
       page,
       rpp,
