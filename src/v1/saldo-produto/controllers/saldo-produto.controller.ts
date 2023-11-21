@@ -28,4 +28,15 @@ export class SaldoProdutoController {
     return this.saldoProdutoService.findEstoqueBaixo(page, rpp, q);
   }
 
+
+  @Get('realatorio')
+  @ApiQuery({ name: 'q', required: false, type: String })
+  relatorio(
+    @Query('page') page: number,
+    @Query('rpp') rpp: number,
+    @Query('q') q?: string,
+  ) {
+    return this.saldoProdutoService.relatorioSaldo(page, rpp, { /* passar os filtros aqui atraves de DTO */});
+  }
+
 }
