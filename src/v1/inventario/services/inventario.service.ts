@@ -22,24 +22,16 @@ export class InventarioService {
     const inventarioProdutos: Partial<InventarioProduto>[] = [];
     let produtosSaldo: SaldoProduto[] = [];
 
-    console.log('criando inventário')
     if (!createDto.produtos?.length) {
-      console.log('nao tem produto adicionando todos')
       produtosSaldo = await this.repositorySaldo.find({ 
         where: { quantidade: MoreThan(0) },
         relations: ['produto']
       });
     } else {
-      console.log({ produtosIds: createDto.produtos.map(p => p.id) })
       produtosSaldo = await this.repositorySaldo.find({ 
         where: { produto: { id: In(createDto.produtos.map(p => p.id)) } },
         relations: ['produto']
       });
-
-      console.log(await this.repositorySaldo.find({ 
-        where: { produto: { id: In(createDto.produtos.map(p => p.id)) } },
-        relations: ['produto']
-      }))
     }
 
     produtosSaldo.map(p => inventarioProdutos.push({ 
