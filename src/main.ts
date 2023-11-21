@@ -1,4 +1,4 @@
-import { INestApplication, VersioningType } from '@nestjs/common';
+import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -8,6 +8,7 @@ async function bootstrap() {
   app
     .setGlobalPrefix('api')
     .enableVersioning({ type: VersioningType.URI })
+    .useGlobalPipes(new ValidationPipe({ transform: true }))
     .enableCors();
   setupSwagger(app);
   await app.listen(3000);

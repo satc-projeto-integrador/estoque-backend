@@ -7,10 +7,8 @@ import { UpdateMovimentacaoDto } from 'src/v1/movimentacao/dto/update-movimentac
 import { FindManyOptions, Repository, UpdateResult } from 'typeorm';
 import { Movimentacao } from '../entities/movimentacao.entity';
 import { SaldoProdutoService } from 'src/v1/saldo-produto/services/saldo-produto.service';
-import { TipoMovimentacao } from 'src/v1/tipo-movimentacao/entities/tipo-movimentacao.entity';
 import { TipoMovimentacaoEnum } from 'src/types/enums';
 import { MovimentacaoProduto } from '../entities/movimentacao-produto.entity';
-import { groupBy } from 'rxjs';
 import { RelatorioMovimentacaoDto } from '../dto/relatorio-movimentacao.dto';
 
 @Injectable()
@@ -28,7 +26,12 @@ export class MovimentacaoService {
 
   // todo colocar em uma unica transacao
   async create(createDto: CreateMovimentacaoDto): Promise<Movimentacao> {
-    const { id } = await this.repository.save(createDto);
+    const quantidadeTotal = createDto?.movimentacaoProdutos?.reduce(
+      (accumulator, currentValue) => accumulator + (currentValue.quantidade ?? 0),
+      0,
+    );
+
+    const { id } = await this.repository.save({ ...createDto, quantidadeTotal });
     const movimentacao = await this.repository.findOne({
       where: { id },
       relations: ["tipoMovimentacao", "movimentacaoProdutos", "movimentacaoProdutos.produto"]
@@ -65,6 +68,33 @@ export class MovimentacaoService {
   }
 
   async remove(id: number): Promise<UpdateResult> {
+    const maxId = await this.repository.maximum('id');
+
+    if (id !== maxId) {
+      throw new HttpException("Só é possível reverter a movimentacão mais recente", HttpStatus.BAD_REQUEST);
+    }
+
+    const movimentacao = await this.repository.findOne({
+      where: { id },
+      relations: ["tipoMovimentacao", "movimentacaoProdutos", "movimentacaoProdutos.produto"]
+    })
+
+    for (const { produto, quantidade } of movimentacao.movimentacaoProdutos) {
+      switch (movimentacao.tipoMovimentacao.tipo) {
+        case TipoMovimentacaoEnum.ENTRADA: {
+          await this.saldoService.saida(produto, quantidade);
+          break;
+        }
+        case TipoMovimentacaoEnum.SAIDA: {
+          await this.saldoService.entrada(produto, quantidade);
+          break;
+        }
+        default: {
+          throw new HttpException({ message: "Erro ao definir tipo de movimentacao" }, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+      }
+    }
+
     return this.repository.softDelete({ id });
   }
 

@@ -48,5 +48,26 @@ export class SaldoProdutoService {
 		return this.repository.findOneBy({ id });
 	}
 
+	async findEstoqueBaixo(page: number = 1, rpp: number = 10, q: string): Promise<Page<SaldoProduto>> {
+		const query = this.repository.createQueryBuilder("saldoProduto")
+			.leftJoinAndSelect("saldoProduto.produto", "produto")
+			.where("saldoProduto.quantidade <= produto.quantidadeMinima")
+			.skip((page - 1) * rpp)
+			.take(rpp);
+		
+		if (q) {
+			query.andWhere("produto.descricao ilike :q", { q: `%${q}%` });
+		}
+
+		const [ saldoProdutos, count ] = await query.getManyAndCount();
+
+		return {
+			list: saldoProdutos,
+			totalCount: count,
+			page,
+			rpp,
+		}
+	}
+
 }
 
