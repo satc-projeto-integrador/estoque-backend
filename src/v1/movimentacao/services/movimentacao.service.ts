@@ -10,7 +10,9 @@ import { SaldoProdutoService } from 'src/v1/saldo-produto/services/saldo-produto
 import { TipoMovimentacaoEnum } from 'src/types/enums';
 import { MovimentacaoProduto } from '../entities/movimentacao-produto.entity';
 import { RelatorioMovimentacaoDto } from '../dto/relatorio-movimentacao.dto';
+import { query } from 'express';
 
+type RelatorioFilterOptions = { produtoIds?: number[], tipoProdutoIds?: number[], dataInicio?: Date, dataFim?: Date }
 @Injectable()
 export class MovimentacaoService {
 
@@ -98,15 +100,17 @@ export class MovimentacaoService {
     return this.repository.softDelete({ id });
   }
 
-  async relMovimentacoes({ 
-    page,
-    rpp,
-    idProduto,
-    idTipoProduto,
-    dataMovInicio,
-    dataMovFim
-  }: {page: number, rpp: number, idProduto?: number, idTipoProduto?: number, dataMovInicio?: string, dataMovFim?: string}): Promise<Page<RelatorioMovimentacaoDto>> {
-    let queryBuilder = this.movimentacaoProdutoRepository.createQueryBuilder("movimentacaoProduto")
+  async relMovimentacoes(
+    page: number,
+    rpp: number,
+    {
+      produtoIds,
+      tipoProdutoIds,
+      dataInicio,
+      dataFim
+    }: RelatorioFilterOptions
+  ): Promise<Page<RelatorioMovimentacaoDto>> {
+    const queryBuilder = this.movimentacaoProdutoRepository.createQueryBuilder("movimentacaoProduto")
       .select([
         "produto.id",
         "produto.descricao",
@@ -117,6 +121,7 @@ export class MovimentacaoService {
         "tipoMovimentacao.tipo",
         "sum(movimentacaoProduto.valor) as valor",
         "sum(movimentacaoProduto.quantidade) as quantidade",
+        "count(*) as count"
       ])
       .innerJoin("movimentacaoProduto.movimentacao", "movimentacao")
       .innerJoin("movimentacaoProduto.produto", "produto")
@@ -134,20 +139,20 @@ export class MovimentacaoService {
       .skip((page - 1) * rpp);
 
     // Adiciona a cláusula WHERE condicional
-    if (idProduto !== undefined) {
-      queryBuilder = queryBuilder.andWhere("movimentacaoProduto.produto_id = :produtoId", { produtoId: idProduto });
+    if (produtoIds?.length) {
+      queryBuilder.andWhere("movimentacaoProduto.produto_id IN (:...produtoIds)", { produtoIds });
     }
 
-    if (idTipoProduto !== undefined) {
-      queryBuilder = queryBuilder.andWhere("tipoProduto.id = :tipoProdutoId", { tipoProdutoId: idTipoProduto });
+    if (tipoProdutoIds?.length) {
+      queryBuilder.andWhere("tipoProduto.id IN (:...tipoProdutoIds)", { tipoProdutoIds });
     }
     
-    if (dataMovInicio !== undefined) {
-      queryBuilder = queryBuilder.andWhere("movimentacao.data_movimentacao >= :dataInicio", { dataInicio: dataMovInicio });
+    if (dataInicio) {
+      queryBuilder.andWhere("movimentacao.data_movimentacao >= :dataInicio", { dataInicio });
     }
 
-    if (dataMovFim !== undefined) {
-      queryBuilder = queryBuilder.andWhere("movimentacao.data_movimentacao <= :dataFim", { dataFim: dataMovFim });
+    if (dataFim) {
+      queryBuilder.andWhere("movimentacao.data_movimentacao <= :dataFim", { dataFim: dataFim });
     }
     
     const result = await queryBuilder.getRawMany();
@@ -156,9 +161,8 @@ export class MovimentacaoService {
       page,
       rpp,
       list: result,
-      totalCount: 1
+      totalCount: await queryBuilder.getCount()
     };
-    console.log(await queryBuilder.getSql())
     return resultPage;
   }
 }
